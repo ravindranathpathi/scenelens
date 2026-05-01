@@ -22,11 +22,31 @@ git archive --format=zip --prefix=vidsense/ --output="$OUT" HEAD
 # Strip Claude-Code-only directories from the .skill bundle. They must stay
 # in the git archive (Claude Code's /plugin install pulls the same tarball)
 # but the claude.ai bundle should ship only SKILL.md + scripts/.
-zip -d "$OUT" \
-  "vidsense/hooks/*" \
-  "vidsense/commands/*" \
-  "vidsense/.claude-plugin/*" \
-  > /dev/null 2>&1 || true
+#
+# Use Python's stdlib zipfile rather than the `zip` CLI — `zip` is missing
+# from minimal Git-Bash and Alpine environments, and the previous `zip -d`
+# call silently no-op'd when the binary was absent (allowed bloated bundles
+# to ship). Python is already a runtime dependency for the skill itself.
+PYTHON=$(command -v python3 || command -v python)
+"$PYTHON" - "$OUT" <<'PY'
+import shutil, sys, zipfile
+src = sys.argv[1]
+exclude_prefixes = (
+    "vidsense/hooks/",
+    "vidsense/commands/",
+    "vidsense/.claude-plugin/",
+)
+tmp = src + ".tmp"
+removed = 0
+with zipfile.ZipFile(src, "r") as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+    for item in zin.infolist():
+        if any(item.filename.startswith(p) for p in exclude_prefixes):
+            removed += 1
+            continue
+        zout.writestr(item, zin.read(item.filename))
+shutil.move(tmp, src)
+print(f"stripped {removed} Claude-Code-only entries", file=sys.stderr)
+PY
 
 COUNT=$(unzip -l "$OUT" | tail -1 | awk '{print $2}')
 SIZE=$(du -h "$OUT" | cut -f1)
