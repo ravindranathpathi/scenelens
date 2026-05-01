@@ -1,12 +1,12 @@
-# Getting started with vidsense
+# Getting started with scenelens
 
-A first-run guide. If you've never used vidsense before, read this once, then never again.
+A first-run guide. If you've never used scenelens before, read this once, then never again.
 
 ---
 
 ## In one sentence
 
-`/vidsense` lets Claude actually watch a video — by URL or local file — and answer questions about it grounded in what's on screen and what's said.
+`/scenelens` lets Claude actually watch a video — by URL or local file — and answer questions about it grounded in what's on screen and what's said.
 
 ---
 
@@ -15,36 +15,36 @@ A first-run guide. If you've never used vidsense before, read this once, then ne
 ### Claude Code
 
 ```
-/plugin marketplace add YOUR_GITHUB_HANDLE/vidsense
-/plugin install vidsense@vidsense
+/plugin marketplace add ravindranathpathi/scenelens
+/plugin install scenelens@scenelens
 ```
 
-That's it. The skill is registered. First time you type `/vidsense ...` it'll auto-check setup and walk you through any missing pieces.
+That's it. The skill is registered. First time you type `/scenelens ...` it'll auto-check setup and walk you through any missing pieces.
 
 ### claude.ai (web)
 
-1. Download `vidsense.skill` from the [latest release](https://github.com/YOUR_GITHUB_HANDLE/vidsense/releases/latest).
+1. Download `scenelens.skill` from the [latest release](https://github.com/ravindranathpathi/scenelens/releases/latest).
 2. Open Settings → Capabilities → Skills.
-3. Drag `vidsense.skill` into the upload area.
-4. **Enable "Code execution and file creation"** in Capabilities — vidsense shells out to `ffmpeg` and `yt-dlp`, so it won't run without it.
+3. Drag `scenelens.skill` into the upload area.
+4. **Enable "Code execution and file creation"** in Capabilities — scenelens shells out to `ffmpeg` and `yt-dlp`, so it won't run without it.
 
 ### Codex (and other generic skill loaders)
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_HANDLE/vidsense.git ~/.codex/skills/vidsense
+git clone https://github.com/ravindranathpathi/scenelens.git ~/.codex/skills/scenelens
 ```
 
 ### Manual / dev install
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_HANDLE/vidsense.git ~/.claude/skills/vidsense
+git clone https://github.com/ravindranathpathi/scenelens.git ~/.claude/skills/scenelens
 ```
 
 ---
 
 ## First-run setup (60 seconds)
 
-vidsense needs three command-line tools and one optional API key:
+scenelens needs three command-line tools and one optional API key:
 
 | Tool | Required? | Why |
 |---|---|---|
@@ -53,13 +53,13 @@ vidsense needs three command-line tools and one optional API key:
 | `tesseract` | Optional | OCR text from on-screen content (slides, code, terminals) |
 | Whisper API key | Optional | Transcription when a video has no captions |
 
-When you run `/vidsense` for the first time and any of these are missing, vidsense will tell you the exact one-line install command for your platform.
+When you run `/scenelens` for the first time and any of these are missing, scenelens will tell you the exact one-line install command for your platform.
 
 To trigger this proactively without running the skill, run the installer directly:
 
 **macOS** (auto-installs via Homebrew):
 ```bash
-python3 ~/.claude/skills/vidsense/scripts/setup.py
+python3 ~/.claude/skills/scenelens/scripts/setup.py
 ```
 
 **Linux**:
@@ -75,7 +75,7 @@ winget install yt-dlp.yt-dlp
 winget install UB-Mannheim.TesseractOCR
 ```
 
-Then, optionally, add a Whisper API key to `~/.config/vidsense/.env`:
+Then, optionally, add a Whisper API key to `~/.config/scenelens/.env`:
 
 ```bash
 GROQ_API_KEY=gsk_...      # preferred — cheaper, faster (console.groq.com/keys)
@@ -86,12 +86,12 @@ You don't need a key if every video you watch has captions (most YouTube does). 
 
 ---
 
-## Your first vidsense command
+## Your first scenelens command
 
 Pick a short YouTube video. Try this one — it works as a tutorial because it has captions, has cuts (so scene-aware sampling shines), and has on-screen text (so OCR shines):
 
 ```
-/vidsense https://www.youtube.com/watch?v=x7X9w_GIm1s what is this video about?
+/scenelens https://www.youtube.com/watch?v=x7X9w_GIm1s what is this video about?
 ```
 
 Expected behavior:
@@ -108,10 +108,10 @@ You'll get a markdown report you don't usually need to look at directly — Clau
 
 ## Reading the report (one-time tour)
 
-If you scroll up after a `/vidsense` call, you'll see Claude's thought process used a structured report. Five sections:
+If you scroll up after a `/scenelens` call, you'll see Claude's thought process used a structured report. Five sections:
 
 ```markdown
-# vidsense: video report
+# scenelens: video report
 
 - **Source:** ...                 ← what you passed in
 - **Title:** ...                  ← from yt-dlp metadata
@@ -151,13 +151,13 @@ Three things to know about the report:
 **1. Summarize a video you don't want to watch**
 
 ```
-/vidsense https://youtu.be/abc summarize this
+/scenelens https://youtu.be/abc summarize this
 ```
 
 **2. Zoom into a specific moment**
 
 ```
-/vidsense https://youtu.be/abc --start 2:15 --end 2:45 what happens here?
+/scenelens https://youtu.be/abc --start 2:15 --end 2:45 what happens here?
 ```
 
 The video gets downloaded fully (yt-dlp doesn't do partial), but frame extraction and transcript filtering happen only in that 30-second window — so the frame budget is dense, not sparse.
@@ -165,7 +165,7 @@ The video gets downloaded fully (yt-dlp doesn't do partial), but frame extractio
 **3. Read on-screen text in a screen recording**
 
 ```
-/vidsense ~/loom-bug-repro.mp4 --resolution 1024 what error message does the terminal show?
+/scenelens ~/loom-bug-repro.mp4 --resolution 1024 what error message does the terminal show?
 ```
 
 The default 512px frame width is fine for normal content; bump to 1024 when text is small enough that Tesseract can't read it.
@@ -173,7 +173,7 @@ The default 512px frame width is fine for normal content; bump to 1024 when text
 **4. Watch a long video**
 
 ```
-/vidsense https://youtu.be/long-podcast-url --start 1:12:00 --end 1:13:00 what was just argued?
+/scenelens https://youtu.be/long-podcast-url --start 1:12:00 --end 1:13:00 what was just argued?
 ```
 
 For anything over ~10 minutes, focus on the part you care about. A sparse 80-frame scan of a 2-hour video is rarely useful; a dense 80-frame scan of one minute is.
@@ -181,10 +181,10 @@ For anything over ~10 minutes, focus on the part you care about. A sparse 80-fra
 **5. Watch something without captions**
 
 ```
-/vidsense https://www.tiktok.com/@user/video/123 summarize this
+/scenelens https://www.tiktok.com/@user/video/123 summarize this
 ```
 
-vidsense automatically falls back to Whisper transcription. Make sure you have `GROQ_API_KEY` set in `~/.config/vidsense/.env`.
+scenelens automatically falls back to Whisper transcription. Make sure you have `GROQ_API_KEY` set in `~/.config/scenelens/.env`.
 
 ---
 
@@ -203,17 +203,17 @@ vidsense automatically falls back to Whisper transcription. Make sure you have `
 | Watch in a non-English language | `--sub-langs es,fr,de,...` |
 | Keep working files for inspection | `--out-dir ~/some-dir` |
 
-Run `python scripts/vidsense.py --help` for the full reference.
+Run `python scripts/scenelens.py --help` for the full reference.
 
 ---
 
 ## Follow-up questions are free
 
-Once Claude has watched a video, you can ask follow-up questions in the same conversation **without re-running vidsense**. The frames, OCR, and transcript are already in context. Don't re-paste the URL — just ask.
+Once Claude has watched a video, you can ask follow-up questions in the same conversation **without re-running scenelens**. The frames, OCR, and transcript are already in context. Don't re-paste the URL — just ask.
 
 ✓ Good:
 ```
-/vidsense https://youtu.be/abc summarize this
+/scenelens https://youtu.be/abc summarize this
 [Claude answers]
 what specifically did they say at the 1 minute mark?
 [Claude answers from existing context — no API calls, no token cost]
@@ -221,8 +221,8 @@ what specifically did they say at the 1 minute mark?
 
 ✗ Wasteful:
 ```
-/vidsense https://youtu.be/abc summarize this
-/vidsense https://youtu.be/abc what specifically did they say at the 1 minute mark?
+/scenelens https://youtu.be/abc summarize this
+/scenelens https://youtu.be/abc what specifically did they say at the 1 minute mark?
 ```
 
 ---
@@ -232,24 +232,24 @@ what specifically did they say at the 1 minute mark?
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `setup incomplete (missing binaries)` | ffmpeg/yt-dlp not installed | Run the install command for your platform from the table above |
-| `setup incomplete (no Whisper API key)` | Caption-less video and no key | Add `GROQ_API_KEY` to `~/.config/vidsense/.env` (or use `--no-whisper`) |
+| `setup incomplete (no Whisper API key)` | Caption-less video and no key | Add `GROQ_API_KEY` to `~/.config/scenelens/.env` (or use `--no-whisper`) |
 | `Frames: 0` | Auto-mode misfire on weird content | Try `--mode fixed` |
 | `OCR: 0/N frames have text` on screen recording | Default 512px resolution is too small | Add `--resolution 1024` |
 | `yt-dlp did not produce a video file` | Geo-locked, age-gated, or yt-dlp out of date | `pip install --user --upgrade yt-dlp` |
-| `Whisper request failed: HTTP 401` | Invalid or expired API key | Rotate at console.groq.com/keys, update `~/.config/vidsense/.env` |
-| `Whisper request failed: HTTP 413` | Audio over 25 MB | vidsense should auto-chunk; if it doesn't, file an issue |
+| `Whisper request failed: HTTP 401` | Invalid or expired API key | Rotate at console.groq.com/keys, update `~/.config/scenelens/.env` |
+| `Whisper request failed: HTTP 413` | Audio over 25 MB | scenelens should auto-chunk; if it doesn't, file an issue |
 | Em-dashes or arrows crash on Windows | Python < 3.7 | Upgrade Python (`python --version` should be 3.7+) |
 | Long video, sparse answer | Frame budget spread too thin | Re-run with `--start`/`--end` on the part you care about |
 
 ---
 
-## What vidsense will NOT do
+## What scenelens will NOT do
 
 A few things that are not bugs — they're deliberate scope limits:
 
-- **No private platforms.** Only public URLs and local files. If yt-dlp can't reach a video without authentication, neither can vidsense.
+- **No private platforms.** Only public URLs and local files. If yt-dlp can't reach a video without authentication, neither can scenelens.
 - **No account login flows.** No Vimeo password support, no YouTube Premium auth, no Loom team-private-link handling.
-- **No telemetry.** vidsense doesn't phone home. The only outbound network calls are: yt-dlp pulling video/captions from the source platform, and (if Whisper fires) audio going to Groq or OpenAI.
+- **No telemetry.** scenelens doesn't phone home. The only outbound network calls are: yt-dlp pulling video/captions from the source platform, and (if Whisper fires) audio going to Groq or OpenAI.
 - **No upload of raw video to any API.** When Whisper is used, only the extracted mono 16 kHz audio clip leaves your machine — never the video itself.
 
 ---

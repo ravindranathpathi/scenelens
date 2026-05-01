@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Setup / preflight for /vidsense.
+"""Setup / preflight for /scenelens.
 
 Modes:
   setup.py --check      Silent preflight. Exit 0 if ready, 2/3/4 on failure.
@@ -33,12 +33,12 @@ for _stream in (sys.stdout, sys.stderr):
 
 REQUIRED_BINARIES = ["ffmpeg", "ffprobe", "yt-dlp"]
 OPTIONAL_BINARIES = ["tesseract"]
-CONFIG_DIR = Path.home() / ".config" / "vidsense"
+CONFIG_DIR = Path.home() / ".config" / "scenelens"
 CONFIG_FILE = CONFIG_DIR / ".env"
-ENV_TEMPLATE = """# /vidsense API configuration
+ENV_TEMPLATE = """# /scenelens API configuration
 #
 # Whisper transcription fallback — used only when yt-dlp cannot fetch captions
-# (or when /vidsense is pointed at a local file with no subtitles).
+# (or when /scenelens is pointed at a local file with no subtitles).
 #
 # Groq is preferred: whisper-large-v3 at a fraction of OpenAI's price, faster
 # in practice. OpenAI is the compatible fallback.
@@ -46,7 +46,7 @@ ENV_TEMPLATE = """# /vidsense API configuration
 # Get a Groq key:    https://console.groq.com/keys
 # Get an OpenAI key: https://platform.openai.com/api-keys
 #
-# Leave both blank to disable Whisper — /vidsense still works, but videos
+# Leave both blank to disable Whisper — /scenelens still works, but videos
 # without native captions come back frames-only.
 
 GROQ_API_KEY=
@@ -69,7 +69,7 @@ def _check_file_permissions(path: Path) -> None:
         mode = path.stat().st_mode
         if mode & 0o044:
             sys.stderr.write(
-                f"[vidsense] WARNING: {path} is readable by other users. "
+                f"[scenelens] WARNING: {path} is readable by other users. "
                 f"Run: chmod 600 {path}\n"
             )
             sys.stderr.flush()
@@ -242,7 +242,7 @@ def cmd_check() -> int:
         parts.append("no Whisper API key (GROQ_API_KEY or OPENAI_API_KEY)")
     installer = Path(__file__).resolve()
     sys.stderr.write(
-        f"[vidsense] setup incomplete ({'; '.join(parts)}). "
+        f"[scenelens] setup incomplete ({'; '.join(parts)}). "
         f"Run: python3 {installer}\n"
     )
     sys.stderr.flush()
@@ -313,7 +313,7 @@ def cmd_install() -> int:
         _write_setup_complete()
         print(f"[setup] ready. whisper backend: {backend}")
         if installed_deps:
-            print("[setup] installed dependencies; /vidsense is fully set up.")
+            print("[setup] installed dependencies; /scenelens is fully set up.")
         return 0
 
     print("")
@@ -323,7 +323,7 @@ def cmd_install() -> int:
     print("    GROQ_API_KEY=...    (preferred — cheaper, faster; console.groq.com/keys)")
     print("    OPENAI_API_KEY=...  (fallback; platform.openai.com/api-keys)")
     print("")
-    print("  Without a key, /vidsense still works but videos without captions come back frames-only.")
+    print("  Without a key, /scenelens still works but videos without captions come back frames-only.")
     return 3
 
 

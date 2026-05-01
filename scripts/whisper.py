@@ -5,7 +5,7 @@ Hardening over the original /watch design:
   - Audio body is read once and reused across retries (no re-read on each attempt).
   - Audio over the API's 25 MB cap is auto-chunked and re-merged with offset
     timestamps; long videos no longer fail outright.
-  - .env is read ONLY from `~/.config/vidsense/.env` and process env. The
+  - .env is read ONLY from `~/.config/scenelens/.env` and process env. The
     cwd .env fallback is intentionally removed — it would silently pick up
     keys from any random project directory.
 
@@ -37,13 +37,13 @@ OPENAI_MODEL = "whisper-1"
 WHISPER_MAX_BYTES = 24 * 1024 * 1024   # 1 MB headroom under the 25 MB API cap
 CHUNK_OVERLAP_SEC = 0.5                # tiny overlap to avoid losing word boundaries
 
-CONFIG_FILE = Path.home() / ".config" / "vidsense" / ".env"
+CONFIG_FILE = Path.home() / ".config" / "scenelens" / ".env"
 
 
 def load_api_key(preferred: str | None = None) -> tuple[str, str] | tuple[None, None]:
     """Return (backend, api_key). Prefers Groq, falls back to OpenAI.
 
-    Sources, in order: process env, then ~/.config/vidsense/.env. We do NOT
+    Sources, in order: process env, then ~/.config/scenelens/.env. We do NOT
     read .env from the current working directory — that would silently leak
     keys between projects.
     """
@@ -184,7 +184,7 @@ def split_audio(audio_path: Path, max_bytes: int = WHISPER_MAX_BYTES) -> list[tu
 def _build_multipart(fields: dict[str, str], file_path: Path, file_bytes: bytes) -> tuple[bytes, str]:
     """Assemble a multipart/form-data body. file_bytes is pre-read to avoid
     hitting disk on every retry."""
-    boundary = f"----VidsenseBoundary{uuid.uuid4().hex}"
+    boundary = f"----ScenelensBoundary{uuid.uuid4().hex}"
     eol = b"\r\n"
     buf = io.BytesIO()
 
@@ -226,7 +226,7 @@ def _post_whisper(endpoint: str, api_key: str, model: str, audio_path: Path) -> 
         "Authorization": f"Bearer {api_key}",
         "Content-Type": f"multipart/form-data; boundary={boundary}",
         # Default Python-urllib UA trips Cloudflare WAF on Groq before auth runs.
-        "User-Agent": "vidsense/0.1 (+claude; python-urllib)",
+        "User-Agent": "scenelens/0.1 (+claude; python-urllib)",
     }
 
     context = ssl.create_default_context()
@@ -256,7 +256,7 @@ def _post_whisper(endpoint: str, api_key: str, model: str, audio_path: Path) -> 
 
             if attempt < MAX_ATTEMPTS - 1:
                 print(
-                    f"[vidsense] whisper HTTP {exc.code} — retrying in {delay:.1f}s "
+                    f"[scenelens] whisper HTTP {exc.code} — retrying in {delay:.1f}s "
                     f"(attempt {attempt + 2}/{MAX_ATTEMPTS})",
                     file=sys.stderr,
                 )
@@ -267,7 +267,7 @@ def _post_whisper(endpoint: str, api_key: str, model: str, audio_path: Path) -> 
             if attempt < MAX_ATTEMPTS - 1:
                 delay = RETRY_BASE_DELAY * (attempt + 1)
                 print(
-                    f"[vidsense] whisper network error ({type(exc).__name__}: {exc}) — "
+                    f"[scenelens] whisper network error ({type(exc).__name__}: {exc}) — "
                     f"retrying in {delay:.1f}s (attempt {attempt + 2}/{MAX_ATTEMPTS})",
                     file=sys.stderr,
                 )
@@ -346,18 +346,18 @@ def transcribe_video(
         setup_py = Path(__file__).resolve().parent / "setup.py"
         raise SystemExit(
             "No Whisper API key available. Set GROQ_API_KEY (preferred) or OPENAI_API_KEY "
-            "in the environment or in ~/.config/vidsense/.env. "
+            "in the environment or in ~/.config/scenelens/.env. "
             f"Run `python3 {setup_py}` to configure."
         )
 
-    print(f"[vidsense] extracting audio for Whisper ({backend})…", file=sys.stderr)
+    print(f"[scenelens] extracting audio for Whisper ({backend})…", file=sys.stderr)
     audio_path = extract_audio(video_path, audio_out)
     size_kb = audio_path.stat().st_size / 1024
-    print(f"[vidsense] audio: {size_kb:.0f} kB", file=sys.stderr)
+    print(f"[scenelens] audio: {size_kb:.0f} kB", file=sys.stderr)
 
     chunks = split_audio(audio_path)
     if len(chunks) > 1:
-        print(f"[vidsense] audio exceeds 24 MB cap — split into {len(chunks)} chunks", file=sys.stderr)
+        print(f"[scenelens] audio exceeds 24 MB cap — split into {len(chunks)} chunks", file=sys.stderr)
 
     endpoint, model = (GROQ_ENDPOINT, GROQ_MODEL) if backend == "groq" else (OPENAI_ENDPOINT, OPENAI_MODEL)
     if backend not in ("groq", "openai"):
@@ -366,9 +366,9 @@ def transcribe_video(
     all_segments: list[dict] = []
     for i, (chunk_path, offset) in enumerate(chunks):
         if len(chunks) > 1:
-            print(f"[vidsense] uploading chunk {i+1}/{len(chunks)} (offset {offset:.1f}s)…", file=sys.stderr)
+            print(f"[scenelens] uploading chunk {i+1}/{len(chunks)} (offset {offset:.1f}s)…", file=sys.stderr)
         else:
-            print(f"[vidsense] uploading audio to {backend} Whisper…", file=sys.stderr)
+            print(f"[scenelens] uploading audio to {backend} Whisper…", file=sys.stderr)
         response = _post_whisper(endpoint, api_key, model, chunk_path)
         all_segments.extend(_segments_from_response(response, time_offset=offset))
 
@@ -376,7 +376,7 @@ def transcribe_video(
         raise SystemExit("Whisper returned no transcript segments")
 
     all_segments.sort(key=lambda s: s["start"])
-    print(f"[vidsense] transcribed {len(all_segments)} segments via {backend}", file=sys.stderr)
+    print(f"[scenelens] transcribed {len(all_segments)} segments via {backend}", file=sys.stderr)
     return all_segments, backend
 
 

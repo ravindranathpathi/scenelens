@@ -1,29 +1,29 @@
-# /vidsense
+# /scenelens
 
 **Give Claude a smarter video input.**
 
 > **New here?** Start with [GETTING_STARTED.md](GETTING_STARTED.md) — install, first command, common patterns, and troubleshooting in one read. The rest of this README is the architecture / design reference.
 
-Most video-for-LLM scripts grab frames at a fixed rate and call it a day. `/vidsense` does three things differently:
+Most video-for-LLM scripts grab frames at a fixed rate and call it a day. `/scenelens` does three things differently:
 
 1. **Picks frames at scene changes** — content-aware sampling instead of time-uniform sampling. Same token budget, far better signal.
 2. **OCRs every frame** — on-screen text (slides, code, terminals, dashboards) is extracted as text alongside the image, so Claude doesn't burn vision tokens reading static pixels.
 3. **Auto-chunks long audio** — the 25 MB Whisper API cap no longer kills long videos. They just take more API calls.
 
-Plus a few quieter improvements: only reads `.env` from `~/.config/vidsense/`, validates `--out-dir` against system paths, caches request bodies between Whisper retries.
+Plus a few quieter improvements: only reads `.env` from `~/.config/scenelens/`, validates `--out-dir` against system paths, caches request bodies between Whisper retries.
 
 ```
-/vidsense https://youtu.be/dQw4w9WgXcQ what hook did they open with?
+/scenelens https://youtu.be/dQw4w9WgXcQ what hook did they open with?
 ```
 
 ## Install
 
 | Surface | Install |
 |---------|---------|
-| **Claude Code** | `/plugin marketplace add YOUR_GITHUB_HANDLE/vidsense` then `/plugin install vidsense@vidsense` |
-| **claude.ai** (web) | [Download `vidsense.skill`](https://github.com/YOUR_GITHUB_HANDLE/vidsense/releases/latest) → Settings → Capabilities → Skills → `+` |
-| **Codex** | `git clone https://github.com/YOUR_GITHUB_HANDLE/vidsense.git ~/.codex/skills/vidsense` |
-| **Manual / dev** | `git clone https://github.com/YOUR_GITHUB_HANDLE/vidsense.git ~/.claude/skills/vidsense` |
+| **Claude Code** | `/plugin marketplace add ravindranathpathi/scenelens` then `/plugin install scenelens@scenelens` |
+| **claude.ai** (web) | [Download `scenelens.skill`](https://github.com/ravindranathpathi/scenelens/releases/latest) → Settings → Capabilities → Skills → `+` |
+| **Codex** | `git clone https://github.com/ravindranathpathi/scenelens.git ~/.codex/skills/scenelens` |
+| **Manual / dev** | `git clone https://github.com/ravindranathpathi/scenelens.git ~/.claude/skills/scenelens` |
 
 On the first run, `setup.py` checks for `ffmpeg`, `ffprobe`, `yt-dlp` (required) and `tesseract` (optional, for OCR). On macOS with Homebrew it auto-installs; on Linux/Windows it prints exact `apt`/`dnf`/`winget`/`pipx` commands.
 
@@ -39,14 +39,14 @@ On the first run, `setup.py` checks for `ffmpeg`, `ffprobe`, `yt-dlp` (required)
 
 ## What's different vs. the obvious approach
 
-| Concern | Naïve approach | vidsense |
+| Concern | Naïve approach | scenelens |
 |---------|---------------|----------|
 | Frame selection | Fixed fps | Scene-aware with fixed-fps fallback |
 | Frame timestamps | Computed from fps | Real PTS via ffmpeg `showinfo` |
 | On-screen text | Vision tokens decode pixels | Tesseract OCR runs first |
 | Audio over 25 MB | Hard fail | Auto-chunked, merged |
 | Whisper retries | Re-read file from disk each attempt | Read once, reuse bytes |
-| `.env` resolution | Falls back to cwd | Strictly `~/.config/vidsense/` + env |
+| `.env` resolution | Falls back to cwd | Strictly `~/.config/scenelens/` + env |
 | `--out-dir` | Any path the process can write | Refuses `/etc`, `/bin`, `/sbin`, `/usr/{bin,sbin}`, `/boot` |
 | Long-video warning | Just prints | Prints + suggests focused mode with `--start`/`--end` |
 
@@ -54,26 +54,26 @@ On the first run, `setup.py` checks for `ffmpeg`, `ffprobe`, `yt-dlp` (required)
 
 ```bash
 # Whole-video scene-aware scan with OCR
-/vidsense https://youtu.be/dQw4w9WgXcQ what's the hook?
-/vidsense ~/screen-recording.mp4 when does the UI break?
+/scenelens https://youtu.be/dQw4w9WgXcQ what's the hook?
+/scenelens ~/screen-recording.mp4 when does the UI break?
 
 # Focused on a section — denser frame budget
-/vidsense https://youtu.be/abc --start 2:15 --end 2:45
+/scenelens https://youtu.be/abc --start 2:15 --end 2:45
 
 # Force fixed-fps for a static talking head with no cuts
-/vidsense interview.mp4 --mode fixed
+/scenelens interview.mp4 --mode fixed
 
 # Force scene-only, error if no scenes detected
-/vidsense ad.mp4 --mode scene --scene-threshold 0.20
+/scenelens ad.mp4 --mode scene --scene-threshold 0.20
 
 # Skip OCR for content with no on-screen text
-/vidsense podcast.mp4 --no-ocr
+/scenelens podcast.mp4 --no-ocr
 
 # Frames-only (no Whisper, no captions = no transcript)
-/vidsense video.mp4 --no-whisper
+/scenelens video.mp4 --no-whisper
 ```
 
-Other flags (`scripts/vidsense.py --help` for the full list):
+Other flags (`scripts/scenelens.py --help` for the full list):
 
 - `--max-frames N` — lower the cap (default 80, hard max 100).
 - `--resolution W` — frame width in px (default 512). Bump to 1024 only when OCR doesn't catch what's needed.
@@ -109,14 +109,14 @@ Captions cover most public videos for free. Whisper only fires when a video genu
 | Whisper fallback (alt) | [OpenAI API key](https://platform.openai.com/api-keys) — `whisper-1` | Standard pricing |
 | Disable Whisper entirely | `--no-whisper` | Free, frames-only when no captions |
 
-Keys live at `~/.config/vidsense/.env`, mode `0600` on POSIX. The skill does NOT read `.env` from the current working directory — that's deliberate, to avoid silently picking up keys from random project dirs.
+Keys live at `~/.config/scenelens/.env`, mode `0600` on POSIX. The skill does NOT read `.env` from the current working directory — that's deliberate, to avoid silently picking up keys from random project dirs.
 
 ## Limits
 
 - **Best accuracy: under 10 minutes.** Past that, even scene-aware extraction is sparse on long-form content. Re-run focused.
 - **Hard caps: 100 frames total, 2 fps in fixed-fps mode.**
 - **Whisper chunk size: 24 MB** (1 MB headroom under the 25 MB API cap). Audio above this is split automatically.
-- **No private platforms.** Public URLs and local files only. If yt-dlp can't reach it without auth, neither can `/vidsense`.
+- **No private platforms.** Public URLs and local files only. If yt-dlp can't reach it without auth, neither can `/scenelens`.
 
 ## Structure
 
@@ -124,27 +124,27 @@ Keys live at `~/.config/vidsense/.env`, mode `0600` on POSIX. The skill does NOT
 .
 ├── SKILL.md                 # skill contract — loaded by all three surfaces
 ├── scripts/
-│   ├── vidsense.py          # entry point — orchestrates the full pipeline
+│   ├── scenelens.py          # entry point — orchestrates the full pipeline
 │   ├── download.py          # yt-dlp wrapper
 │   ├── frames.py            # scene + fixed-fps frame extraction
 │   ├── ocr.py               # Tesseract wrapper, parallelized over frames
 │   ├── transcribe.py        # VTT parser + dedupe
 │   ├── whisper.py           # Groq / OpenAI clients, with chunking + body caching
 │   ├── setup.py             # preflight + installer (required + optional binaries)
-│   └── build-skill.sh       # build dist/vidsense.skill for claude.ai upload
+│   └── build-skill.sh       # build dist/scenelens.skill for claude.ai upload
 ├── hooks/                   # SessionStart status hook (Claude Code)
 ├── .claude-plugin/          # plugin.json + marketplace.json
 ├── .codex-plugin/           # codex packaging
-└── .github/workflows/       # release.yml — auto-builds vidsense.skill on tag push
+└── .github/workflows/       # release.yml — auto-builds scenelens.skill on tag push
 ```
 
 ## Develop
 
 ```bash
-bash scripts/build-skill.sh      # → dist/vidsense.skill
+bash scripts/build-skill.sh      # → dist/scenelens.skill
 ```
 
-Releasing: tag `vX.Y.Z`, push the tag. The workflow builds `dist/vidsense.skill` and attaches it to the GitHub release.
+Releasing: tag `vX.Y.Z`, push the tag. The workflow builds `dist/scenelens.skill` and attaches it to the GitHub release.
 
 See [CHANGELOG.md](CHANGELOG.md).
 
@@ -152,4 +152,4 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 MIT. Built on `yt-dlp`, `ffmpeg`, `tesseract`, and Claude's multimodal `Read` tool. Whisper transcription via [Groq](https://groq.com) or [OpenAI](https://openai.com).
 
-Inspired by [bradautomates/claude-video](https://github.com/bradautomates/claude-video) — a fixed-fps video skill for Claude. vidsense rebuilds the pipeline around scene-aware extraction, OCR, and audio chunking.
+Inspired by [bradautomates/claude-video](https://github.com/bradautomates/claude-video) — a fixed-fps video skill for Claude. scenelens rebuilds the pipeline around scene-aware extraction, OCR, and audio chunking.

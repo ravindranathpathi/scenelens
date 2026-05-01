@@ -32,7 +32,7 @@ def resolve_local(path: str) -> dict:
         raise SystemExit(f"Not a file: {p}")
     if p.suffix.lower() not in VIDEO_EXTS:
         print(
-            f"[vidsense] warning: {p.suffix} is not a known video extension, proceeding anyway",
+            f"[scenelens] warning: {p.suffix} is not a known video extension, proceeding anyway",
             file=sys.stderr,
         )
     return {

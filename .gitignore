@@ -16,5 +16,5 @@ htmlcov/
 # local Claude Code settings
 .claude/settings.local.json
 
-# stray .env in repo (keys belong in ~/.config/vidsense/.env)
+# stray .env in repo (keys belong in ~/.config/scenelens/.env)
 .env

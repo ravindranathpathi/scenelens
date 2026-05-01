@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""/vidsense entry point.
+"""/scenelens entry point.
 
 Pipeline:
   1. download / resolve the source
@@ -50,7 +50,7 @@ from whisper import load_api_key, transcribe_video  # noqa: E402
 def _validate_out_dir(path_arg: str | None) -> Path:
     """Resolve --out-dir under user control. Refuses obvious system paths."""
     if not path_arg:
-        return Path(tempfile.mkdtemp(prefix="vidsense-"))
+        return Path(tempfile.mkdtemp(prefix="scenelens-"))
 
     p = Path(path_arg).expanduser().resolve()
     forbidden_prefixes = [Path("/etc"), Path("/bin"), Path("/sbin"), Path("/usr/bin"), Path("/usr/sbin"), Path("/boot")]
@@ -66,7 +66,7 @@ def _validate_out_dir(path_arg: str | None) -> Path:
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        prog="vidsense",
+        prog="scenelens",
         description="Watch a video — scene-aware frames + OCR + transcript, surfaced for Claude.",
     )
     ap.add_argument("source", help="Video URL or local file path")
@@ -91,10 +91,10 @@ def main() -> int:
 
     max_frames = min(args.max_frames, 100)
     work = _validate_out_dir(args.out_dir)
-    print(f"[vidsense] working dir: {work}", file=sys.stderr)
+    print(f"[scenelens] working dir: {work}", file=sys.stderr)
 
     print(
-        "[vidsense] downloading via yt-dlp…" if is_url(args.source) else "[vidsense] using local file…",
+        "[scenelens] downloading via yt-dlp…" if is_url(args.source) else "[scenelens] using local file…",
         file=sys.stderr,
     )
     dl = download(args.source, work / "download", sub_langs=args.sub_langs)
@@ -122,7 +122,7 @@ def main() -> int:
         f"{format_time(effective_start)}-{format_time(effective_end)} ({effective_duration:.1f}s)"
         if focused else f"full {effective_duration:.1f}s"
     )
-    print(f"[vidsense] extracting frames ({args.mode}) over {scope}…", file=sys.stderr)
+    print(f"[scenelens] extracting frames ({args.mode}) over {scope}…", file=sys.stderr)
 
     frames, frame_info = extract(
         video_path,
@@ -144,16 +144,16 @@ def main() -> int:
     ocr_summary = None
     if not args.no_ocr:
         if ocr_available():
-            print(f"[vidsense] running OCR on {len(frames)} frames…", file=sys.stderr)
+            print(f"[scenelens] running OCR on {len(frames)} frames…", file=sys.stderr)
             ocr_frames(frames, lang=args.ocr_lang)
             ocr_summary = summarize_ocr(frames)
             print(
-                f"[vidsense] OCR found text on {ocr_summary['frames_with_text']}/{ocr_summary['frames_total']} frames "
+                f"[scenelens] OCR found text on {ocr_summary['frames_with_text']}/{ocr_summary['frames_total']} frames "
                 f"({ocr_summary['ocr_chars']} chars)",
                 file=sys.stderr,
             )
         else:
-            print("[vidsense] tesseract not installed — skipping OCR (run setup.py to enable)", file=sys.stderr)
+            print("[scenelens] tesseract not installed — skipping OCR (run setup.py to enable)", file=sys.stderr)
 
     transcript_segments: list[dict] = []
     transcript_text: str | None = None
@@ -165,7 +165,7 @@ def main() -> int:
             transcript_text = format_transcript(transcript_segments)
             transcript_source = "captions"
         except Exception as exc:
-            print(f"[vidsense] subtitle parse failed: {exc}", file=sys.stderr)
+            print(f"[scenelens] subtitle parse failed: {exc}", file=sys.stderr)
 
     if not transcript_segments and not args.no_whisper:
         backend, api_key = load_api_key(args.whisper)
@@ -181,7 +181,7 @@ def main() -> int:
                 transcript_text = format_transcript(transcript_segments)
                 transcript_source = f"whisper ({used_backend})"
             except SystemExit as exc:
-                print(f"[vidsense] whisper fallback failed: {exc}", file=sys.stderr)
+                print(f"[scenelens] whisper fallback failed: {exc}", file=sys.stderr)
         else:
             hint = (
                 f"--whisper {args.whisper} was set but the matching API key is missing"
@@ -190,7 +190,7 @@ def main() -> int:
             )
             setup_py = SCRIPT_DIR / "setup.py"
             print(
-                f"[vidsense] {hint} — run `python3 {setup_py}` to enable Whisper",
+                f"[scenelens] {hint} — run `python3 {setup_py}` to enable Whisper",
                 file=sys.stderr,
             )
 
@@ -198,7 +198,7 @@ def main() -> int:
     chapters = info.get("chapters") or []
 
     print()
-    print("# vidsense: video report")
+    print("# scenelens: video report")
     print()
     print(f"- **Source:** {args.source}")
     if info.get("title"):

@@ -20,12 +20,12 @@ jobs:
       - name: Build .skill artifact
         run: |
           bash scripts/build-skill.sh
-          test -f dist/vidsense.skill
+          test -f dist/scenelens.skill
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/vidsense.skill
+          files: dist/scenelens.skill
           generate_release_notes: true
           draft: false
           prerelease: false

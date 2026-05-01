@@ -2,7 +2,7 @@
 # build-skill.sh — package this repo as a claude.ai-upload-ready .skill file.
 # Usage: bash scripts/build-skill.sh  (run from repo root)
 #
-# Produces dist/vidsense.skill, a zip with a single top-level `vidsense/`
+# Produces dist/scenelens.skill, a zip with a single top-level `scenelens/`
 # directory containing SKILL.md and the scripts/ runtime. claude.ai's skill
 # upload has a 200-file cap.
 set -euo pipefail
@@ -16,8 +16,8 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 mkdir -p dist
-OUT="dist/vidsense.skill"
-git archive --format=zip --prefix=vidsense/ --output="$OUT" HEAD
+OUT="dist/scenelens.skill"
+git archive --format=zip --prefix=scenelens/ --output="$OUT" HEAD
 
 # Strip Claude-Code-only directories from the .skill bundle. They must stay
 # in the git archive (Claude Code's /plugin install pulls the same tarball)
@@ -32,9 +32,9 @@ PYTHON=$(command -v python3 || command -v python)
 import shutil, sys, zipfile
 src = sys.argv[1]
 exclude_prefixes = (
-    "vidsense/hooks/",
-    "vidsense/commands/",
-    "vidsense/.claude-plugin/",
+    "scenelens/hooks/",
+    "scenelens/commands/",
+    "scenelens/.claude-plugin/",
 )
 tmp = src + ".tmp"
 removed = 0

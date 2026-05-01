@@ -1,6 +1,6 @@
-# Manual Test Plan — vidsense
+# Manual Test Plan — scenelens
 
-Run this before pushing v0.1.0 to GitHub. The automated eval (`python tests/eval.py`) verifies the code logic. This plan verifies the **product** — that vidsense actually answers questions about real videos correctly, on a real machine, with real keys.
+Run this before pushing v0.1.0 to GitHub. The automated eval (`python tests/eval.py`) verifies the code logic. This plan verifies the **product** — that scenelens actually answers questions about real videos correctly, on a real machine, with real keys.
 
 Budget: ~10–15 minutes wall time, < $0.10 in Groq API costs (assuming Whisper fires on 2 of the 7 tests).
 
@@ -18,7 +18,7 @@ yt-dlp --version
 tesseract --version | head -1     # optional, but unlocks OCR
 
 # 2. Groq key configured (rotate the one in chat, paste new one yourself)
-cat ~/.config/vidsense/.env | grep GROQ_API_KEY
+cat ~/.config/scenelens/.env | grep GROQ_API_KEY
 # or:  echo $GROQ_API_KEY
 
 # 3. Automated eval green
@@ -27,7 +27,7 @@ python tests/eval.py --iterations 3
 # (1 of the 2 expected skips disappears once a valid Groq key is set)
 
 # 4. README placeholders replaced
-grep -r "YOUR_GITHUB_HANDLE\|YOUR_NAME" --exclude-dir=.git
+grep -r "ravindranathpathi\|YOUR_NAME" --exclude-dir=.git
 # Must return zero matches.
 ```
 
@@ -42,7 +42,7 @@ If any of those fail, fix before continuing.
 **Pick a video**: a YouTube tutorial that's mostly someone's face for the first half, then switches to a screen demo / slide deck for the second half. Tech-creator content (Fireship, Theo, Primeagen, MKBHD, etc.) usually fits. 5-10 minutes ideal.
 
 ```
-/vidsense <URL> what visual content does the second half of the video show?
+/scenelens <URL> what visual content does the second half of the video show?
 ```
 
 **Pass criteria**:
@@ -56,12 +56,12 @@ If any of those fail, fix before continuing.
 
 ## 2. Pure Talking-Head Test — fallback validation
 
-**What it validates**: when no scene changes are detected, vidsense auto-falls back to fixed-fps instead of returning zero frames.
+**What it validates**: when no scene changes are detected, scenelens auto-falls back to fixed-fps instead of returning zero frames.
 
 **Pick a video**: a single-take vlog or "talking to camera" clip. 1–3 minutes. No cuts. Some podcasters' YouTube uploads work (single static camera).
 
 ```
-/vidsense <URL> summarize the main argument
+/scenelens <URL> summarize the main argument
 ```
 
 **Pass criteria**:
@@ -80,7 +80,7 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 
 ```bash
 # Step 3a — full-length sparse pass
-/vidsense <URL> what's the main argument here?
+/scenelens <URL> what's the main argument here?
 ```
 
 **Pass criteria for 3a**:
@@ -90,7 +90,7 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 
 ```bash
 # Step 3b — focused on a 30-second window
-/vidsense <URL> --start 25:00 --end 25:30 what's being said and shown right here?
+/scenelens <URL> --start 25:00 --end 25:30 what's being said and shown right here?
 ```
 
 **Pass criteria for 3b**:
@@ -107,7 +107,7 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 **Get a recording**: capture 30-60 seconds of your own screen showing code, a terminal, slides, or a dashboard. Use Win+G (Windows Game Bar), QuickTime (Mac), or OBS. Save as `~/test-screen.mp4`.
 
 ```bash
-/vidsense ~/test-screen.mp4 what code/text is visible on screen?
+/scenelens ~/test-screen.mp4 what code/text is visible on screen?
 ```
 
 **Pass criteria**:
@@ -127,7 +127,7 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 **Pick a video**: a TikTok or X (Twitter) video without auto-captions. 30-90 seconds.
 
 ```bash
-/vidsense <TikTok-URL> what's happening in this video?
+/scenelens <TikTok-URL> what's happening in this video?
 ```
 
 **Pass criteria**:
@@ -135,7 +135,7 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 - Report shows `Transcript: N segments (via whisper (groq))` — confirms Whisper fallback fired
 - Claude's answer references both visual and audio content correctly
 
-**Common failure**: regional restrictions or the platform updated their API. If yt-dlp fails, that's not a vidsense bug — try a different source.
+**Common failure**: regional restrictions or the platform updated their API. If yt-dlp fails, that's not a scenelens bug — try a different source.
 
 ---
 
@@ -147,10 +147,10 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 
 ```bash
 # Confirm no captions (should output "Transcript: none available")
-/vidsense <URL> --no-whisper anything
+/scenelens <URL> --no-whisper anything
 
 # Now let Whisper handle it
-/vidsense <URL> what was said?
+/scenelens <URL> what was said?
 ```
 
 **Pass criteria**:
@@ -168,16 +168,16 @@ If you see `Frames: 0` with no fallback message, the auto-mode dispatch is broke
 
 **Run, then immediately ask a follow-up**:
 ```
-/vidsense <URL> what is this video about?
+/scenelens <URL> what is this video about?
 # Wait for Claude's answer, then in the SAME conversation:
 what specifically happens around the 1:00 mark?
 ```
 
 **Pass criteria**:
-- The follow-up answer arrives **without** vidsense re-running. No new "downloading via yt-dlp", no new working directory printed.
+- The follow-up answer arrives **without** scenelens re-running. No new "downloading via yt-dlp", no new working directory printed.
 - The answer is grounded in the frames + transcript already in context — Claude cites the right timestamp and visual content from memory of the original report.
 
-**Why this matters**: each vidsense run costs API tokens and latency. Reusing context for follow-ups is the difference between a $0.05 conversation and a $0.20 one.
+**Why this matters**: each scenelens run costs API tokens and latency. Reusing context for follow-ups is the difference between a $0.05 conversation and a $0.20 one.
 
 ---
 
@@ -205,8 +205,8 @@ You're ready to push when:
 
 - [ ] Pre-flight gate green
 - [ ] All 7 manual tests pass (or any failures investigated and explained)
-- [ ] At least one good vidsense report screenshot captured (Test 1's frame strip, Test 4's OCR, or Test 6's transcript section)
-- [ ] README placeholders all replaced (`YOUR_NAME`, `YOUR_GITHUB_HANDLE`)
+- [ ] At least one good scenelens report screenshot captured (Test 1's frame strip, Test 4's OCR, or Test 6's transcript section)
+- [ ] README placeholders all replaced (`YOUR_NAME`, `ravindranathpathi`)
 - [ ] CHANGELOG.md dated (today's date)
 - [ ] LICENSE owner is you, not the placeholder
 - [ ] `git status` is clean (or only intentional untracked files)
@@ -214,13 +214,13 @@ You're ready to push when:
 Then:
 
 ```bash
-cd /path/to/vidsense
+cd /path/to/scenelens
 
 git init
 git add .
 git commit -m "Initial release: scene-aware frames, OCR, chunked Whisper, eval suite"
 
-git remote add origin git@github.com:YOUR_GITHUB_HANDLE/vidsense.git
+git remote add origin git@github.com:ravindranathpathi/scenelens.git
 git push -u origin main
 
 # Trigger the release workflow
@@ -228,15 +228,15 @@ git tag v0.1.0
 git push --tags
 ```
 
-The GitHub Actions workflow at `.github/workflows/release.yml` builds `dist/vidsense.skill` and attaches it to the release within ~2 minutes. Verify the release page shows the `.skill` artifact before tweeting.
+The GitHub Actions workflow at `.github/workflows/release.yml` builds `dist/scenelens.skill` and attaches it to the release within ~2 minutes. Verify the release page shows the `.skill` artifact before tweeting.
 
 ---
 
 ## After publishing
 
-- [ ] Verify `/plugin marketplace add YOUR_HANDLE/vidsense` works on a fresh Claude Code install
+- [ ] Verify `/plugin marketplace add YOUR_HANDLE/scenelens` works on a fresh Claude Code install
 - [ ] Verify the `.skill` upload path on claude.ai (Settings → Capabilities → Skills → +)
-- [ ] Post the Twitter thread with one or two vidsense screenshots (frame strip from Test 1; OCR-rich report from Test 4)
+- [ ] Post the Twitter thread with one or two scenelens screenshots (frame strip from Test 1; OCR-rich report from Test 4)
 - [ ] Cross-post to relevant communities (r/ClaudeAI, r/LocalLLaMA, Hacker News if it gets traction)
 
 ---
@@ -248,7 +248,7 @@ The GitHub Actions workflow at `.github/workflows/release.yml` builds `dist/vids
 | `--check` exit 4 | binaries or key missing | Run `python scripts/setup.py` |
 | `Frames: 0` on auto mode | scene detection broken AND fallback dispatch broken | Re-run `python tests/eval.py --filter extract:` to localize |
 | `OCR: unavailable` | tesseract not on PATH | `winget install UB-Mannheim.TesseractOCR`; restart shell |
-| `Whisper request failed: HTTP Error 401` | invalid Groq/OpenAI key | Rotate at console; update `~/.config/vidsense/.env` |
+| `Whisper request failed: HTTP Error 401` | invalid Groq/OpenAI key | Rotate at console; update `~/.config/scenelens/.env` |
 | Whisper hangs > 30s on small audio | network or Groq region issue | Try `--whisper openai` |
 | `yt-dlp did not produce a video file` | URL geo-locked, age-gated, or yt-dlp out of date | `pip install --user --upgrade yt-dlp` |
 | Em-dashes / arrows crash on Windows | UTF-8 reconfig didn't apply | Verify Python ≥ 3.7 (`python --version`) |

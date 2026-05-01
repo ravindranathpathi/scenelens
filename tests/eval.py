@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""vidsense eval harness — tests every feature in a loop.
+"""scenelens eval harness — tests every feature in a loop.
 
 Two tiers:
   - Logic tier: pure-Python tests that always run (no external binaries).
@@ -547,7 +547,7 @@ def test_multipart_body_well_formed():
             path,
             path.read_bytes(),
         )
-        assert_true(boundary.startswith("----VidsenseBoundary"))
+        assert_true(boundary.startswith("----ScenelensBoundary"))
         assert_true(f"--{boundary}".encode() in body)
         assert_true(f"--{boundary}--".encode() in body)
         assert_true(b'name="model"' in body)
@@ -668,24 +668,24 @@ def test_setup_json_output_valid():
     assert_true("ocr_available" in data)
 
 
-# ===== vidsense.py orchestrator =====
+# ===== scenelens.py orchestrator =====
 
 def test_validate_out_dir_default_is_tmp():
-    """Import private function from vidsense.py."""
-    spec_path = SCRIPTS_DIR / "vidsense.py"
+    """Import private function from scenelens.py."""
+    spec_path = SCRIPTS_DIR / "scenelens.py"
     import importlib.util
-    spec = importlib.util.spec_from_file_location("vidsense_mod", spec_path)
+    spec = importlib.util.spec_from_file_location("scenelens_mod", spec_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     p = mod._validate_out_dir(None)
     assert_true(p.exists())
-    assert_true("vidsense-" in p.name, f"default tmp dir prefix missing: {p}")
+    assert_true("scenelens-" in p.name, f"default tmp dir prefix missing: {p}")
     shutil.rmtree(p, ignore_errors=True)
 
 
 def test_validate_out_dir_user_path_ok():
     import importlib.util
-    spec = importlib.util.spec_from_file_location("vidsense_mod", SCRIPTS_DIR / "vidsense.py")
+    spec = importlib.util.spec_from_file_location("scenelens_mod", SCRIPTS_DIR / "scenelens.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     with tempfile.TemporaryDirectory() as td:
@@ -697,16 +697,16 @@ def test_validate_out_dir_user_path_ok():
 def test_validate_out_dir_refuses_etc():
     skip_on_windows("/etc has no semantic meaning on Windows")
     import importlib.util
-    spec = importlib.util.spec_from_file_location("vidsense_mod", SCRIPTS_DIR / "vidsense.py")
+    spec = importlib.util.spec_from_file_location("scenelens_mod", SCRIPTS_DIR / "scenelens.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    assert_raises(SystemExit, mod._validate_out_dir, "/etc/vidsense-test")
+    assert_raises(SystemExit, mod._validate_out_dir, "/etc/scenelens-test")
 
 
-def test_vidsense_help_does_not_crash():
+def test_scenelens_help_does_not_crash():
     """Regression: argparse help with em-dashes used to crash on Windows cp1252."""
     result = subprocess.run(
-        [sys.executable, str(SCRIPTS_DIR / "vidsense.py"), "--help"],
+        [sys.executable, str(SCRIPTS_DIR / "scenelens.py"), "--help"],
         capture_output=True, text=True,
     )
     assert_eq(result.returncode, 0, f"--help crashed: {result.stderr}")
@@ -807,7 +807,7 @@ def test_int_ocr_real_text():
         img = Path(td) / "text.png"
         # drawtext needs the font path with backslashes and colons escaped on Windows.
         drawtext = (
-            f"drawtext=fontfile='{font}':text='vidsense ocr eval test':"
+            f"drawtext=fontfile='{font}':text='scenelens ocr eval test':"
             "fontcolor=black:fontsize=48:x=20:y=40"
         )
         subprocess.run(
@@ -824,7 +824,7 @@ def test_int_ocr_real_text():
         if text is None:
             raise TestSkip("tesseract returned no text on synthetic image")
         assert_true(
-            "vidsense" in text.lower() or "ocr" in text.lower() or "eval" in text.lower(),
+            "scenelens" in text.lower() or "ocr" in text.lower() or "eval" in text.lower(),
             f"OCR didn't recover expected text, got: {text!r}",
         )
 
@@ -849,7 +849,7 @@ def test_int_whisper_groq_call():
             msg = str(e)
             # 401/403 = bad key. Distinguish from a genuine pipeline failure:
             # the multipart upload + HTTP call succeeded — only the credential
-            # was rejected. Skip rather than fail so this test reflects vidsense
+            # was rejected. Skip rather than fail so this test reflects scenelens
             # health, not the user's key validity.
             if "401" in msg or "403" in msg or "invalid_api_key" in msg.lower():
                 raise TestSkip(f"GROQ_API_KEY rejected by Groq: {msg[:100]}")
@@ -930,11 +930,11 @@ TESTS = [
     ("setup", "check:exit_code_in_set", test_setup_check_subprocess_exit_code),
     ("setup", "json:valid_json", test_setup_json_output_valid),
 
-    # vidsense orchestrator
-    ("vidsense", "validate_out_dir:default_tmp", test_validate_out_dir_default_is_tmp),
-    ("vidsense", "validate_out_dir:user_path", test_validate_out_dir_user_path_ok),
-    ("vidsense", "validate_out_dir:refuses_etc", test_validate_out_dir_refuses_etc),
-    ("vidsense", "help:no_unicode_crash", test_vidsense_help_does_not_crash),
+    # scenelens orchestrator
+    ("scenelens", "validate_out_dir:default_tmp", test_validate_out_dir_default_is_tmp),
+    ("scenelens", "validate_out_dir:user_path", test_validate_out_dir_user_path_ok),
+    ("scenelens", "validate_out_dir:refuses_etc", test_validate_out_dir_refuses_etc),
+    ("scenelens", "help:no_unicode_crash", test_scenelens_help_does_not_crash),
 
     # integration
     ("integration", "ffprobe:metadata_on_synth_video", test_int_ffprobe_metadata),
@@ -990,7 +990,7 @@ def main() -> int:
     durations: dict[tuple[str, str], list[float]] = {(m, n): [] for m, n, _ in selected}
 
     if not args.json:
-        print(f"vidsense eval — {len(selected)} tests × {args.iterations} iterations")
+        print(f"scenelens eval — {len(selected)} tests × {args.iterations} iterations")
         print("=" * 78)
 
     overall_start = time.perf_counter()
