@@ -27,7 +27,7 @@ python tests/eval.py --iterations 3
 # (1 of the 2 expected skips disappears once a valid Groq key is set)
 
 # 4. README placeholders replaced
-grep -r "ravindranathpathi\|YOUR_NAME" --exclude-dir=.git
+grep -r "ravindranathpathi\|Ravindranath Pathi" --exclude-dir=.git
 # Must return zero matches.
 ```
 
@@ -206,7 +206,7 @@ You're ready to push when:
 - [ ] Pre-flight gate green
 - [ ] All 7 manual tests pass (or any failures investigated and explained)
 - [ ] At least one good scenelens report screenshot captured (Test 1's frame strip, Test 4's OCR, or Test 6's transcript section)
-- [ ] README placeholders all replaced (`YOUR_NAME`, `ravindranathpathi`)
+- [ ] README placeholders all replaced (`Ravindranath Pathi`, `ravindranathpathi`)
 - [ ] CHANGELOG.md dated (today's date)
 - [ ] LICENSE owner is you, not the placeholder
 - [ ] `git status` is clean (or only intentional untracked files)

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Let Claude watch a video — smarter. Picks frames at scene changes (not fixed fps), OCRs every frame so on-screen text is read as text, pulls captions or auto-chunked Whisper transcript, and hands frames + OCR + transcript to Claude.",
   "author": {
-    "name": "YOUR_NAME"
+    "name": "Ravindranath Pathi"
   },
   "homepage": "https://github.com/ravindranathpathi/scenelens",
   "repository": "https://github.com/ravindranathpathi/scenelens",

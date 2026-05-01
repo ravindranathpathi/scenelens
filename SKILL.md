@@ -5,7 +5,7 @@ argument-hint: "<video-url-or-path> [question]"
 allowed-tools: Bash, Read, AskUserQuestion
 homepage: https://github.com/ravindranathpathi/scenelens
 repository: https://github.com/ravindranathpathi/scenelens
-author: YOUR_NAME
+author: Ravindranath Pathi
 license: MIT
 user-invocable: true
 ---

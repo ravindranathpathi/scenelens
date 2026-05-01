@@ -4,14 +4,14 @@
     "description": "Give Claude a smarter video input. /scenelens picks frames at scene changes, OCRs each frame, transcribes (with auto-chunking), and hands it all to Claude."
   },
   "owner": {
-    "name": "YOUR_NAME"
+    "name": "Ravindranath Pathi"
   },
   "plugins": [
     {
       "name": "scenelens",
       "description": "Watch a video (URL or local path). Scene-aware frames + OCR + transcript via captions or auto-chunked Whisper.",
       "author": {
-        "name": "YOUR_NAME"
+        "name": "Ravindranath Pathi"
       },
       "source": "./",
       "category": "productivity",
