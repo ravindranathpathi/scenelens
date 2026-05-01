@@ -2,6 +2,8 @@
 
 **Give Claude a smarter video input.**
 
+> **New here?** Start with [GETTING_STARTED.md](GETTING_STARTED.md) — install, first command, common patterns, and troubleshooting in one read. The rest of this README is the architecture / design reference.
+
 Most video-for-LLM scripts grab frames at a fixed rate and call it a day. `/vidsense` does three things differently:
 
 1. **Picks frames at scene changes** — content-aware sampling instead of time-uniform sampling. Same token budget, far better signal.
