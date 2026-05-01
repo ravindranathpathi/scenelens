@@ -1,0 +1,21 @@
+{
+  "name": "vidsense",
+  "metadata": {
+    "description": "Give Claude a smarter video input. /vidsense picks frames at scene changes, OCRs each frame, transcribes (with auto-chunking), and hands it all to Claude."
+  },
+  "owner": {
+    "name": "YOUR_NAME"
+  },
+  "plugins": [
+    {
+      "name": "vidsense",
+      "description": "Watch a video (URL or local path). Scene-aware frames + OCR + transcript via captions or auto-chunked Whisper.",
+      "author": {
+        "name": "YOUR_NAME"
+      },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/YOUR_GITHUB_HANDLE/vidsense"
+    }
+  ]
+}

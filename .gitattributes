@@ -1,0 +1,28 @@
+# Exclude non-runtime files from `git archive` output.
+# Used by scripts/build-skill.sh to produce a claude.ai-upload-ready .skill file.
+
+# Standard skill-packaging excludes
+__pycache__/   export-ignore
+node_modules/  export-ignore
+*.pyc          export-ignore
+.DS_Store      export-ignore
+Thumbs.db      export-ignore
+
+# Dev, docs, test, and media — not needed at skill runtime
+tests/         export-ignore
+docs/          export-ignore
+fixtures/      export-ignore
+assets/        export-ignore
+examples/      export-ignore
+
+# NOTE: commands/, hooks/, and .claude-plugin/ are NOT export-ignored —
+# Claude Code's /plugin install fetches this same archive tarball, so they
+# must be in it. The claude.ai .skill bundle strips them after-the-fact via
+# `zip -d` in scripts/build-skill.sh.
+
+# CI workflows — repo-only
+.github/         export-ignore
+
+# Build config itself
+.gitignore       export-ignore
+.gitattributes   export-ignore
