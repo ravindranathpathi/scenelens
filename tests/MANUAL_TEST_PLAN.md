@@ -234,7 +234,7 @@ The GitHub Actions workflow at `.github/workflows/release.yml` builds `dist/scen
 
 ## After publishing
 
-- [ ] Verify `/plugin marketplace add YOUR_HANDLE/scenelens` works on a fresh Claude Code install
+- [ ] Verify `/plugin marketplace add ravindranathpathi/scenelens` works on a fresh Claude Code install
 - [ ] Verify the `.skill` upload path on claude.ai (Settings → Capabilities → Skills → +)
 - [ ] Post the Twitter thread with one or two scenelens screenshots (frame strip from Test 1; OCR-rich report from Test 4)
 - [ ] Cross-post to relevant communities (r/ClaudeAI, r/LocalLLaMA, Hacker News if it gets traction)
