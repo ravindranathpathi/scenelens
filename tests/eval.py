@@ -829,10 +829,16 @@ def test_int_ocr_real_text():
         )
 
 
-def test_int_whisper_groq_call():
+def _live_whisper_call(endpoint: str, model: str, env_var: str, label: str):
+    """Shared body for live Groq / OpenAI integration tests.
+
+    Synthesizes 2 seconds of silent mono 16 kHz mp3, then POSTs it through the
+    same _post_whisper path scenelens uses in production. Treats 401/403/invalid
+    key responses as SKIP (the pipeline reached the API correctly; only the
+    credential was rejected — that's a user concern, not a scenelens bug).
+    """
     skip_if_missing("ffmpeg")
-    skip_if_no_env("GROQ_API_KEY")
-    # Generate 2s of silence, send to Groq, expect a 200 response.
+    skip_if_no_env(env_var)
     with tempfile.TemporaryDirectory() as td:
         audio = Path(td) / "silence.mp3"
         subprocess.run(
@@ -842,19 +848,21 @@ def test_int_whisper_groq_call():
             check=True,
         )
         try:
-            response = wsp._post_whisper(
-                wsp.GROQ_ENDPOINT, os.environ["GROQ_API_KEY"], wsp.GROQ_MODEL, audio,
-            )
+            response = wsp._post_whisper(endpoint, os.environ[env_var], model, audio)
         except SystemExit as e:
             msg = str(e)
-            # 401/403 = bad key. Distinguish from a genuine pipeline failure:
-            # the multipart upload + HTTP call succeeded — only the credential
-            # was rejected. Skip rather than fail so this test reflects scenelens
-            # health, not the user's key validity.
             if "401" in msg or "403" in msg or "invalid_api_key" in msg.lower():
-                raise TestSkip(f"GROQ_API_KEY rejected by Groq: {msg[:100]}")
-            raise AssertionError(f"Groq call failed: {e}")
-        assert_true(isinstance(response, dict))
+                raise TestSkip(f"{env_var} rejected by {label}: {msg[:100]}")
+            raise AssertionError(f"{label} call failed: {e}")
+        assert_true(isinstance(response, dict), f"{label} response not a dict")
+
+
+def test_int_whisper_groq_call():
+    _live_whisper_call(wsp.GROQ_ENDPOINT, wsp.GROQ_MODEL, "GROQ_API_KEY", "Groq")
+
+
+def test_int_whisper_openai_call():
+    _live_whisper_call(wsp.OPENAI_ENDPOINT, wsp.OPENAI_MODEL, "OPENAI_API_KEY", "OpenAI")
 
 
 # ---------------------------------------------------------------------------
@@ -943,6 +951,7 @@ TESTS = [
     ("integration", "yt-dlp:binary_responds", test_int_yt_dlp_available),
     ("integration", "ocr:real_text_recognition", test_int_ocr_real_text),
     ("integration", "whisper:live_groq_call", test_int_whisper_groq_call),
+    ("integration", "whisper:live_openai_call", test_int_whisper_openai_call),
 ]
 
 
