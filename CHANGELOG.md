@@ -2,6 +2,11 @@
 
 All notable changes to `/scenelens` are documented here.
 
+## [0.1.1] — Patch: stderr-None crash on Windows + non-ASCII paths
+
+### Fixed
+- `frames.py` now defends against `result.stderr = None` from `subprocess.run(..., capture_output=True, text=True)` when scenelens is run on Windows with non-ASCII / emoji characters in the video path AND a long video that produces large `-loglevel info` stderr output. Previously crashed with `AttributeError: 'NoneType' object has no attribute 'splitlines'` at line 252; now treats `None` stderr as an empty string so the script proceeds (and just skips PTS-timestamp parsing for that one call). Caught while running on a 58-minute community-event recording with emoji in the path.
+
 ## [0.1.0] — Initial release
 
 ### Added

@@ -248,8 +248,11 @@ def extract_scene_aware(
 
     # showinfo logs one line per emitted frame. Parse pts_time to recover
     # absolute timestamps — these are real PTS, not computed from fps.
+    # Defensive: stderr can be None in edge cases (very large output, encoding
+    # issues, or paths with non-ASCII characters on some Windows configs);
+    # treat that as "no parsed timestamps" rather than crashing.
     timestamps: list[float] = []
-    for line in result.stderr.splitlines():
+    for line in (result.stderr or "").splitlines():
         if "Parsed_showinfo" not in line:
             continue
         match = PTS_RE.search(line)
